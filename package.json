@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "puppeteer": "^24.7.2",
-    "telegraf": "^4.12.3"
+    "telegraf": "^4.16.3"
   }
 }
