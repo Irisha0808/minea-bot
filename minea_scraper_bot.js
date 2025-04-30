@@ -157,6 +157,14 @@ bot.command('autorun', async (ctx) => {
     });
 });
 
+    await ctx.reply('Теперь TikTok...');
+    await processMineaSection(ctx, 'TikTok', TIKTOK_URL, {
+        price: 'product price',
+        profit: 'revenue',
+        date: 'published on'
+    });
+});
+
 bot.action('getshopify', (ctx) => {
     console.log('🔵 Кнопка Shopify нажата, запускаем парсинг...');
     processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
