@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const { Telegraf, Markup } = require('telegraf');
 
 const bot = new Telegraf('8114664828:AAF2rP7DlgsisFptD3TDDB3Ng2E7L8-lGg8');
+
 const MINEA_EMAIL = 'johnfink2012@gmail.com';
 const MINEA_PASSWORD = 'Croatia1#Fink';
 const LOGIN_URL = 'https://app.minea.com/en/login';
@@ -36,27 +37,18 @@ async function acceptCookies(page) {
     }
 }
 
-bot.start((ctx) => {
-    return ctx.reply('Выберите источник:', Markup.inlineKeyboard([
-        [Markup.button.callback('Shopify', 'getshopify')],
-        [Markup.button.callback('TikTok', 'gettiktok')]
-    ]));
-});
-
-bot.action('getshopify', async (ctx) => {
-    ctx.reply('⏳ Запускаю Shopify обработку...');
+async function processMineaSection(ctx, sectionName, url, labels) {
+    ctx.reply(`⏳ Запускаю обработку ${sectionName}...`);
     const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: puppeteer.executablePath(),
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
+    executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
 
-    const page = await browser.newPage();
+
 
     try {
+        const page = await browser.newPage();
         await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
         await wait(2000);
         await acceptCookies(page);
@@ -66,109 +58,30 @@ bot.action('getshopify', async (ctx) => {
         await page.click('button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
 
-        await page.goto(SHOPIFY_URL, { waitUntil: 'domcontentloaded' });
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
         await wait(4000);
-
         await page.waitForSelector('a[href*="/quickview"]', { timeout: 10000 });
-        const productLinks = await page.$$eval('a[href*="/quickview"]', links =>
-            links.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
+
+        const links = await page.$$eval('a[href*="/quickview"]', els =>
+            els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
         );
 
-        for (let i = 0; i < productLinks.length; i++) {
-            const productUrl = productLinks[i];
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
             const productPage = await browser.newPage();
-            await productPage.goto(productUrl, { waitUntil: 'domcontentloaded' });
-            await productPage.evaluate(() => window.scrollBy(0, 500));
-            await wait(4000);
-
-            const productData = await productPage.evaluate(() => {
-                const getTextByLabel = (label) => {
-                    const allDivs = Array.from(document.querySelectorAll('div.flex.items-center.justify-between'));
-                    const div = allDivs.find(d => d.innerText.includes(label));
-                    if (div) {
-                        const valueDiv = div.querySelector('div.block.truncate') || div.querySelector('div.truncate');
-                        return valueDiv ? valueDiv.innerText.trim() : 'Не найдено';
-                    }
-                    return 'Не найдено';
-                };
-                const getImage = () => {
-                    const img = document.querySelector('img[src*="domainz-media"]');
-                    return img ? img.src : null;
-                };
-
-                return {
-                    price: getTextByLabel('Selling price'),
-                    profit: getTextByLabel('Profit'),
-                    date: getTextByLabel('Published on'),
-                    image: getImage(),
-                    link: window.location.href,
-                };
-            });
-
-            if (productData.image && productData.image.startsWith('http')) {
-                await ctx.telegram.sendPhoto(ctx.chat.id, productData.image, {
-                    caption: `🛍️ <b>Товар</b>: <a href="${productData.link}">Перейти</a>\n💰 <b>Цена</b>: ${productData.price}\n📈 <b>Прибыль</b>: ${productData.profit}\n🗓️ <b>Дата</b>: ${productData.date}`,
-                    parse_mode: 'HTML',
-                });
-            }
-
-            await productPage.close();
-            await wait(2000);
-        }
-
-        ctx.reply('✅ Все товары Shopify отправлены!');
-    } catch (err) {
-        console.error('❌ Ошибка Shopify:', err);
-        ctx.reply('❌ Shopify: Произошла ошибка.');
-    } finally {
-        await browser.close();
-    }
-});
-
-bot.action('gettiktok', async (ctx) => {
-    ctx.reply('⏳ Запускаю TikTok обработку...');
-    const browser = await puppeteer.launch({
-        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-
-    try {
-        await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
-        await wait(2000);
-        await acceptCookies(page);
-
-        await page.type('input[type="email"]', MINEA_EMAIL, { delay: 100 });
-        await page.type('input[type="password"]', MINEA_PASSWORD, { delay: 100 });
-        await page.click('button[type="submit"]');
-        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-
-        await page.goto(TIKTOK_URL, { waitUntil: 'domcontentloaded' });
-        await wait(4000);
-
-        await page.waitForSelector('a[href*="/quickview"]', { timeout: 10000 });
-        const tiktokLinks = await page.$$eval('a[href*="/quickview"]', links =>
-            links.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
-        );
-
-        for (let i = 0; i < tiktokLinks.length; i++) {
-            const tiktokUrl = tiktokLinks[i];
-            const tiktokPage = await browser.newPage();
 
             try {
-                await tiktokPage.goto(tiktokUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-                await tiktokPage.evaluate(() => window.scrollBy(0, 500));
+                await productPage.goto(link, { waitUntil: 'domcontentloaded', timeout: 20000 });
+                await productPage.evaluate(() => window.scrollBy(0, 500));
                 await wait(4000);
 
-                const productData = await tiktokPage.evaluate(() => {
+                const productData = await productPage.evaluate((labels) => {
                     const getTextByLabel = (label) => {
-                        const allDivs = Array.from(document.querySelectorAll('div.flex.items-center.justify-between.gap-3'));
-                        const div = allDivs.find(d => d.innerText.toLowerCase().includes(label));
+                        const divs = Array.from(document.querySelectorAll('div.flex.items-center.justify-between, div.flex.items-center.justify-between.gap-3'));
+                        const div = divs.find(d => d.innerText.toLowerCase().includes(label.toLowerCase()));
                         if (div) {
-                            const valueDiv = div.querySelector('div.block.truncate.text-sm.font-semibold');
-                            return valueDiv ? valueDiv.innerText.trim() : 'Не найдено';
+                            const val = div.querySelector('div.block.truncate, div.truncate, div.block.truncate.text-sm.font-semibold');
+                            return val ? val.innerText.trim() : 'Не найдено';
                         }
                         return 'Не найдено';
                     };
@@ -177,37 +90,63 @@ bot.action('gettiktok', async (ctx) => {
                         return img ? img.src : null;
                     };
 
-                    return {
-                        price: getTextByLabel('product price'),
-                        sold: getTextByLabel('items sold'),
-                        revenue: getTextByLabel('revenue'),
-                        published: getTextByLabel('published on'),
-                        image: getImage(),
-                        link: window.location.href,
-                    };
-                });
+                    const data = { link: window.location.href, image: getImage() };
+                    for (const [key, label] of Object.entries(labels)) {
+                        data[key] = getTextByLabel(label);
+                    }
+                    return data;
+                }, labels);
 
                 if (productData && productData.image) {
+                    const caption = Object.entries(productData)
+                        .filter(([k]) => !['image', 'link'].includes(k))
+                        .map(([k, v]) => `🔸 <b>${k[0].toUpperCase() + k.slice(1)}</b>: ${v}`)
+                        .join('\n');
+
                     await ctx.telegram.sendPhoto(ctx.chat.id, productData.image, {
-                        caption: `🎵 <b>TikTok Товар</b>: <a href="${productData.link}">Перейти</a>\n💰 <b>Цена</b>: ${productData.price}\n📈 <b>Продано</b>: ${productData.sold}\n💵 <b>Доход</b>: ${productData.revenue}\n📅 <b>Дата публикации</b>: ${productData.published}`,
-                        parse_mode: 'HTML',
+                        caption: `🛒 <b>${sectionName} Товар</b>: <a href="${productData.link}">Перейти</a>\n${caption}`,
+                        parse_mode: 'HTML'
                     });
                 }
-            } catch (err) {
-                console.error(`⚠️ Ошибка товара TikTok #${i + 1}:`, err.message);
+            } catch (e) {
+                console.error(`⚠️ Ошибка товара ${sectionName} #${i + 1}:`, e.message);
             } finally {
-                await tiktokPage.close();
+                await productPage.close();
                 await wait(2000);
             }
         }
 
-        ctx.reply('✅ Все товары TikTok отправлены!');
+        ctx.reply(`✅ Все товары ${sectionName} отправлены!`);
     } catch (err) {
-        console.error('❌ Ошибка TikTok:', err);
-        ctx.reply('❌ TikTok: Произошла ошибка.');
+        console.error(`❌ Ошибка ${sectionName}:`, err);
+        ctx.reply(`❌ ${sectionName}: Произошла ошибка.`);
     } finally {
         await browser.close();
     }
+}
+
+bot.start((ctx) => {
+    return ctx.reply('Выберите источник:', Markup.inlineKeyboard([
+        [Markup.button.callback('Shopify', 'getshopify')],
+        [Markup.button.callback('TikTok', 'gettiktok')]
+    ]));
+});
+
+bot.action('getshopify', (ctx) => {
+    processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
+        price: 'Selling price',
+        profit: 'Profit',
+        date: 'Published on'
+    });
+});
+
+bot.action('gettiktok', (ctx) => {
+    processMineaSection(ctx, 'TikTok', TIKTOK_URL, {
+        price: 'product price',
+        sold: 'items sold',
+        revenue: 'revenue',
+        published: 'published on'
+    });
 });
 
 bot.launch();
