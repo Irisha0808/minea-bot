@@ -141,7 +141,17 @@ bot.start((ctx) => {
     ]));
 });
 
+bot.command('autorun', async (ctx) => {
+    console.log('⏰ Получена команда /autorun – запускаю Shopify автоматом');
+    await processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
+        price: 'Selling price',
+        profit: 'Profit',
+        date: 'Published on'
+    });
+});
+
 bot.action('getshopify', (ctx) => {
+    console.log('🔵 Кнопка Shopify нажата, запускаем парсинг...');
     processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
         price: 'Selling price',
         profit: 'Profit',
@@ -149,14 +159,6 @@ bot.action('getshopify', (ctx) => {
     });
 });
 
-bot.action('gettiktok', (ctx) => {
-    processMineaSection(ctx, 'TikTok', TIKTOK_URL, {
-        price: 'product price',
-        sold: 'items sold',
-        revenue: 'revenue',
-        published: 'published on'
-    });
-});
 
 bot.launch();
 console.log('✅ Бот запущен! Жду команду.');
