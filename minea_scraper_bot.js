@@ -1,8 +1,4 @@
-const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: puppeteer.executablePath(),
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
+const puppeteer = require('puppeteer');
 const { Telegraf, Markup } = require('telegraf');
 
 const bot = new Telegraf('8114664828:AAF2rP7DlgsisFptD3TDDB3Ng2E7L8-lGg8');
@@ -50,10 +46,10 @@ bot.start((ctx) => {
 bot.action('getshopify', async (ctx) => {
     ctx.reply('⏳ Запускаю Shopify обработку...');
     const browser = await puppeteer.launch({
-  executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
-  headless: true, // или false, если хочешь видеть процесс
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
+        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
     const page = await browser.newPage();
 
@@ -129,10 +125,10 @@ bot.action('getshopify', async (ctx) => {
 bot.action('gettiktok', async (ctx) => {
     ctx.reply('⏳ Запускаю TikTok обработку...');
     const browser = await puppeteer.launch({
-  executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
-  headless: true, // или false, если хочешь видеть процесс
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
+        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
     const page = await browser.newPage();
 
