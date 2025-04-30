@@ -38,13 +38,17 @@ async function acceptCookies(page) {
 }
 
 async function processMineaSection(ctx, sectionName, url, labels) {
-console.log(`🔁 Начинаем обработку раздела: ${sectionName}`);
-  ctx.reply(`⏳ Запускаю обработку ${sectionName}...`);
-const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
+    console.log(`🔁 processMineaSection вызвана для раздела ${sectionName}`);
+    console.log(`🌍 URL: ${url}`);
+
+    ctx.reply(`⏳ Запускаю обработку ${sectionName}...`);
+
+    const browser = await puppeteer.launch({
+        headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
 
 
   try {
@@ -141,6 +145,7 @@ bot.start((ctx) => {
 
 bot.command('autorun', async (ctx) => {
     console.log('⏰ Запуск Shopify + TikTok по /autorun');
+console.log('📬 Команда /autorun дошла от chat.id =', ctx.chat.id);
 
     try {
         await ctx.reply('Запускаю Shopify...');
