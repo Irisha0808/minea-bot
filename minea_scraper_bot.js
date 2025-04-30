@@ -68,8 +68,9 @@ console.log('✅ Вход выполнен, продолжаем...');
 
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         await wait(4000);
-        await page.waitForSelector('a[href*="/quickview"]', { timeout: 10000 });
-
+        console.log('⏳ Жду карточки товаров на странице...');
+await page.waitForSelector('a[href*="/quickview"]', { timeout: 30000 });
+console.log('✅ Карточки найдены, продолжаю...');
         const links = await page.$$eval('a[href*="/quickview"]', els =>
             els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
         );
