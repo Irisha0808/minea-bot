@@ -140,11 +140,20 @@ bot.start((ctx) => {
 });
 
 bot.command('autorun', async (ctx) => {
-    console.log('⏰ Получена команда /autorun – запускаю Shopify автоматом');
+    console.log('⏰ Запуск Shopify + TikTok по /autorun');
+
+    await ctx.reply('Запускаю Shopify...');
     await processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
         price: 'Selling price',
         profit: 'Profit',
         date: 'Published on'
+    });
+
+    await ctx.reply('Теперь TikTok...');
+    await processMineaSection(ctx, 'TikTok', TIKTOK_URL, {
+        price: 'product price',
+        profit: 'revenue',
+        date: 'published on'
     });
 });
 
