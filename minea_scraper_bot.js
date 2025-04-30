@@ -54,12 +54,17 @@ const browser = await puppeteer.launch({
         await wait(2000);
         await acceptCookies(page);
         console.log('🔐 Ввожу логин и пароль...');
+await page.type('input[type="email"]', MINEA_EMAIL, { delay: 100 });
+await page.type('input[type="password"]', MINEA_PASSWORD, { delay: 100 });
 
-        await page.type('input[type="email"]', MINEA_EMAIL, { delay: 100 });
-        await page.type('input[type="password"]', MINEA_PASSWORD, { delay: 100 });
-        await page.click('button[type="submit"]');
-        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
-        console.log('✅ Вход выполнен, продолжаем...');
+console.log('👉 Нажимаю кнопку входа...');
+await page.click('button[type="submit"]');
+
+console.log('⏳ Жду завершения входа...');
+await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
+
+console.log('✅ Вход выполнен, продолжаем...');
+
 
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         await wait(4000);
