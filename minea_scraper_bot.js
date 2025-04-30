@@ -150,3 +150,5 @@ bot.action('gettiktok', (ctx) => {
 
 bot.launch();
 console.log('✅ Бот запущен! Жду команду.');
+// 👇 Обманка для Render, чтобы сервис не падал
+require('http').createServer(() => {}).listen(process.env.PORT || 3000);
