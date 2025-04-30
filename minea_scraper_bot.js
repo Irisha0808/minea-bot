@@ -1,4 +1,8 @@
-const puppeteer = require('puppeteer');
+const browser = await puppeteer.launch({
+  headless: true,
+  executablePath: puppeteer.executablePath(),
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
 const { Telegraf, Markup } = require('telegraf');
 
 const bot = new Telegraf('8114664828:AAF2rP7DlgsisFptD3TDDB3Ng2E7L8-lGg8');
