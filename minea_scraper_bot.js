@@ -139,8 +139,6 @@ bot.start((ctx) => {
   return ctx.reply('Бот готов к работе!');
 });
 
-});
-
 bot.command('autorun', async (ctx) => {
     console.log('⏰ Получена команда /autorun – запускаю Shopify автоматом');
     await processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
