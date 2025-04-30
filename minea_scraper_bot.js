@@ -38,7 +38,8 @@ async function acceptCookies(page) {
 }
 
 async function processMineaSection(ctx, sectionName, url, labels) {
-    ctx.reply(`⏳ Запускаю обработку ${sectionName}...`);
+console.log(`🔁 Начинаем обработку раздела: ${sectionName}`);
+  ctx.reply(`⏳ Запускаю обработку ${sectionName}...`);
 const browser = await puppeteer.launch({
   headless: true,
   executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -48,14 +49,17 @@ const browser = await puppeteer.launch({
 
   try {
         const page = await browser.newPage();
+        console.log('🌐 Открываю страницу логина Minea...');
         await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
         await wait(2000);
         await acceptCookies(page);
+        console.log('🔐 Ввожу логин и пароль...');
 
         await page.type('input[type="email"]', MINEA_EMAIL, { delay: 100 });
         await page.type('input[type="password"]', MINEA_PASSWORD, { delay: 100 });
         await page.click('button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
+        console.log('✅ Вход выполнен, продолжаем...');
 
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         await wait(4000);
