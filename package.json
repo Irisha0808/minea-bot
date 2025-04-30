@@ -4,6 +4,7 @@
   "description": "Telegram bot for Minea scraping",
   "main": "minea_scraper_bot.js",
   "scripts": {
+    "postinstall": "npx puppeteer browsers install chrome",
     "start": "node minea_scraper_bot.js"
   },
   "dependencies": {
