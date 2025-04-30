@@ -45,7 +45,12 @@ bot.start((ctx) => {
 
 bot.action('getshopify', async (ctx) => {
     ctx.reply('⏳ Запускаю Shopify обработку...');
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+  executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+  headless: true, // или false, если хочешь видеть процесс
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
+
     const page = await browser.newPage();
 
     try {
@@ -119,7 +124,12 @@ bot.action('getshopify', async (ctx) => {
 
 bot.action('gettiktok', async (ctx) => {
     ctx.reply('⏳ Запускаю TikTok обработку...');
-    const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
+    const browser = await puppeteer.launch({
+  executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+  headless: true, // или false, если хочешь видеть процесс
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
+
     const page = await browser.newPage();
 
     try {
