@@ -135,10 +135,10 @@ console.log('✅ Карточки найдены, продолжаю...');
 }
 
 bot.start((ctx) => {
-    return ctx.reply('Выберите источник:', Markup.inlineKeyboard([
-        [Markup.button.callback('Shopify', 'getshopify')],
-        [Markup.button.callback('TikTok', 'gettiktok')]
-    ]));
+  console.log('🧾 chat.id =', ctx.chat.id); // лог chat.id в Render
+  return ctx.reply('Бот готов к работе!');
+});
+
 });
 
 bot.command('autorun', async (ctx) => {
