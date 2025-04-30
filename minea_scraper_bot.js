@@ -46,7 +46,10 @@ bot.start((ctx) => {
 bot.action('getshopify', async (ctx) => {
     ctx.reply('⏳ Запускаю Shopify обработку...');
     const browser = await puppeteer.launch({
-        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-135.0.7049.114/chrome-linux64/chrome',
+  headless: true,
+  executablePath: puppeteer.executablePath(),
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
