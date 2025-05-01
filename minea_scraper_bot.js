@@ -70,20 +70,32 @@ await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
 console.log('✅ Вход выполнен, продолжаем...');
 
 
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
-        await wait(4000);
-        console.log('⏳ Жду карточки товаров на странице...');
 try {
     console.log('⏳ Жду карточки товаров на странице...');
-    try {
-    console.log('⏳ Жду карточки товаров на странице...');
-    await page.waitForSelector('a[href*="/quickview"]', { timeout: 30000 });
+    const selector = 'a[href*="/quickview"]';
+
+console.log(`⏳ Жду появление карточек (${sectionName})...`);
+const found = await Promise.race([
+    page.waitForSelector(selector, { timeout: 30000 }).then(() => true),
+    new Promise(resolve => setTimeout(() => resolve(false), 31000))
+]);
+
+if (!found) {
+    console.warn(`❌ ${sectionName}: карточки не найдены за 30 секунд.`);
+    await ctx.reply(`⚠️ ${sectionName}: карточки не найдены. Пропускаю...`);
+    await browser.close();
+    return;
+}
+console.log(`✅ Карточки ${sectionName} найдены, продолжаю...`);
+
     console.log('✅ Карточки найдены, продолжаю...');
 } catch (err) {
     console.error('❌ Не удалось найти карточки товаров Shopify:', err.message);
     await ctx.reply('⚠️ Shopify: не удалось найти карточки товаров. Пропускаю...');
+    await browser.close();
     return;
 }
+
 
     console.log('✅ Карточки найдены, продолжаю...');
 } catch (err) {
