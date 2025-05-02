@@ -35,33 +35,25 @@ async function acceptCookies(page) {
 async function processMineaSection(ctx, sectionName, url, labels) {
     console.log(`🟡 Обработка секции: ${sectionName}`);
     ctx.reply(`⏳ Загружаю ${sectionName}...`);
-    
+
+    let browser; // ← Объявляем заранее
 
     try {
-        const page = await browser.newPage();
-        await page.goto(LOGIN_URL, { waitUntil: 'networkidle2' });
-        await acceptCookies(page);
-        await page.type('input[name="email"]', MINEA_EMAIL);
-        await page.type('input[name="password"]', MINEA_PASSWORD);
-        await page.click('button[type="submit"]');
-        await page.waitForNavigation({ waitUntil: 'networkidle2' });
+        browser = await puppeteer.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
 
-        await page.goto(url, { waitUntil: 'networkidle2' });
+        // дальше твоя логика...
+    } catch (err) {
+        console.error(`❌ Ошибка ${sectionName}:`, err);
+        ctx.reply(`❌ ${sectionName}: Произошла ошибка.`);
+    } finally {
+        if (browser) await browser.close(); // ← Закрываем, только если был запущен
+    }
+}
 
-        const selector = 'a[href*="/quickview"]';
-        let found = false;
-
-        try {
-            found = await page.waitForSelector(selector, { timeout: 90000 }).then(() => true);
-        } catch (e) {
-            console.warn(`⏳ Таймаут при ожидании карточек: ${e.message}`);
-        }
-
-        if (!found) {
-            ctx.reply(`⚠️ ${sectionName}: карточки не найдены`);
-            await browser.close();
-            return;
-        }
 
         const links = await page.$$eval(selector, els =>
             els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
