@@ -180,12 +180,17 @@ console.log('📬 Команда /autorun дошла от chat.id =', ctx.chat.i
             price: 'product price',
             profit: 'revenue',
             date: 'published on'
-        });
-    } catch (e) {
-        console.error('❌ Ошибка при выполнении /autorun:', e.message);
-        await ctx.reply('Произошла ошибка при автозапуске.');
-    }
-});
+             date: 'published on'
+        };
+ (async () => {
+  try {
+    // ваш код
+  } catch (err) {
+    console.error('Ошибка:', err);
+  }
+})();
+
+
 
 bot.action('getshopify', (ctx) => {
     console.log('🔵 Кнопка Shopify нажата, запускаем парсинг...');
