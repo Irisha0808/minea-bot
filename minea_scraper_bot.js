@@ -35,7 +35,7 @@ async function acceptCookies(page) {
 async function processMineaSection(ctx, sectionName, url, labels) {
     console.log(`🟡 Обработка секции: ${sectionName}`);
     ctx.reply(`⏳ Загружаю ${sectionName}...`);
-    м
+    
 
     try {
         const page = await browser.newPage();
