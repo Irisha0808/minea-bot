@@ -1,3 +1,4 @@
+require('dotenv').config();
 const puppeteer = require('puppeteer-core');
 const { Telegraf } = require('telegraf');
 const express = require('express');
