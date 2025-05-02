@@ -35,11 +35,7 @@ async function acceptCookies(page) {
 async function processMineaSection(ctx, sectionName, url, labels) {
     console.log(`🟡 Обработка секции: ${sectionName}`);
     ctx.reply(`⏳ Загружаю ${sectionName}...`);
-    const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    м
 
     try {
         const page = await browser.newPage();
