@@ -66,10 +66,11 @@ async function processMineaSection(ctx, sectionName, url, labels) {
         console.log('⏳ Жду карточки товаров на странице...');
         const selector = 'a[href*="/quickview"]';
 
-        const found = await Promise.race([
-            page.waitForSelector(selector, { timeout: 30000 }).then(() => true),
-            new Promise(resolve => setTimeout(() => resolve(false), 31000))
-        ]);
+       const found = await Promise.race([
+    page.waitForSelector(selector, { timeout: 60000 }).then(() => true),
+    new Promise(resolve => setTimeout(() => resolve(false), 61000))
+]);
+
 
         if (!found) {
             console.warn(`❌ ${sectionName}: карточки не найдены за 30 секунд.`);
