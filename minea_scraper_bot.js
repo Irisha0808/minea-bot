@@ -1,6 +1,4 @@
-require('dotenv').config(); // подключает .env при локальной работе
-
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const { Telegraf } = require('telegraf');
 const express = require('express');
 
