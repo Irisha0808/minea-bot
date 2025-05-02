@@ -63,23 +63,26 @@ async function processMineaSection(ctx, sectionName, url, labels) {
 
         await page.goto(url, { waitUntil: 'networkidle2' });
 
-        console.log('⏳ Жду карточки товаров на странице...');
-        const selector = 'a[href*="/quickview"]';
+      console.log('⏳ Жду карточки товаров на странице...');
+const selector = 'a[href*="/quickview"]';
 
-       const found = await Promise.race([
-    page.waitForSelector(selector, { timeout: 60000 }).then(() => true),
-    new Promise(resolve => setTimeout(() => resolve(false), 61000))
-]);
+let found = false;
 
+try {
+    found = await page.waitForSelector(selector, { timeout: 90000 }).then(() => true);
+} catch (e) {
+    console.warn(`⚠️ Таймаут при ожидании карточек (${sectionName}):`, e.message);
+}
 
-        if (!found) {
-            console.warn(`❌ ${sectionName}: карточки не найдены за 30 секунд.`);
-            await ctx.reply(`⚠️ ${sectionName}: карточки не найдены. Пропускаю...`);
-            await browser.close();
-            return;
-        }
+if (!found) {
+    console.warn(`❌ ${sectionName}: карточки не найдены за 90 секунд.`);
+    await ctx.reply(`⚠️ ${sectionName}: карточки не найдены. Пропускаю...`);
+    await browser.close();
+    return;
+}
 
-        console.log('✅ Карточки найдены, продолжаю...');
+console.log(`✅ Карточки ${sectionName} найдены, продолжаю...`);
+
 
         const links = await page.$$eval('a[href*="/quickview"]', els =>
             els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
