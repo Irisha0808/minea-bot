@@ -1,14 +1,17 @@
 {
   "name": "minea-scraper-bot",
   "version": "1.0.0",
-  "description": "Telegram bot for Minea scraping",
+  "description": "Telegram bot for scraping Minea Shopify & TikTok data",
   "main": "minea_scraper_bot.js",
   "scripts": {
     "start": "node minea_scraper_bot.js"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "puppeteer": "^24.7.2",
-    "telegraf": "^4.16.3"
+    "express": "^4.18.4",
+    "puppeteer": "^21.3.8",
+    "telegraf": "^4.12.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
