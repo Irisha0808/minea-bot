@@ -196,5 +196,11 @@ bot.action('gettiktok', (ctx) => {
 
 bot.launch();
 console.log('✅ Бот запущен! Жду команду.');
-require('http').createServer(() => {}).listen(process.env.PORT || 3000);
+require('http').createServer((req, res) => {
+  res.writeHead(200);
+  res.end('Bot is running');
+}).listen(process.env.PORT || 3000, '0.0.0.0', () => {
+  console.log(`🌐 HTTP dummy server listening on port ${process.env.PORT || 3000}`);
+});
+
 
