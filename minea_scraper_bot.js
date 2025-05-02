@@ -32,30 +32,29 @@ async function acceptCookies(page) {
     }
 }
 
-async function processMineaSection(ctx, sectionName, url, labels) {
-    console.log(`🟡 Обработка секции: ${sectionName}`);
-    ctx.reply(`⏳ Загружаю ${sectionName}...`);
+async function processMineaSection(...) {
+  let browser;
 
-    let browser; // ← Объявляем заранее
+  try {
+    browser = await puppeteer.launch({...});
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    try {
-        browser = await puppeteer.launch({
-            headless: true,
-            executablePath: '/usr/bin/google-chrome',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+    const selector = 'a[href*="/quickview"]';
+    await page.waitForSelector(selector);
 
-        // дальше твоя логика...
-    } catch (err) {
-        console.error(`❌ Ошибка ${sectionName}:`, err);
-        ctx.reply(`❌ ${sectionName}: Произошла ошибка.`);
-    } finally {
-        if (browser) await browser.close(); // ← Закрываем, только если был запущен
-    }
+    const links = await page.$$eval(selector, els =>
+      els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
+    );
+    ...
+  } catch (err) {
+    ...
+  } finally {
+    if (browser) await browser.close();
+  }
 }
 
-
-        const links = await page.$$eval(selector, els =>
+      const links = await page.$$eval(selector, els =>
             els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
         );
 
