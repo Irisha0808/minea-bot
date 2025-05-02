@@ -49,52 +49,37 @@ async function processMineaSection(ctx, sectionName, url, labels) {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
+    try {
+        const page = await browser.newPage();
+        await page.goto(LOGIN_URL, { waitUntil: 'networkidle2' });
+        await acceptCookies(page);
 
+        console.log('🔐 Авторизация...');
+        await page.type('input[name="email"]', MINEA_EMAIL);
+        await page.type('input[name="password"]', MINEA_PASSWORD);
+        await page.click('button[type="submit"]');
+        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
+        console.log('✅ Вход выполнен, продолжаем...');
 
-try {
-    console.log('⏳ Жду карточки товаров на странице...');
-    const selector = 'a[href*="/quickview"]';
+        await page.goto(url, { waitUntil: 'networkidle2' });
 
-    console.log(`⏳ Жду появление карточек (${sectionName})...`);
-    const found = await Promise.race([
-        page.waitForSelector(selector, { timeout: 30000 }).then(() => true),
-        new Promise(resolve => setTimeout(() => resolve(false), 31000))
-    ]);
+        console.log('⏳ Жду карточки товаров на странице...');
+        const selector = 'a[href*="/quickview"]';
 
-    if (!found) {
-        console.warn(`❌ ${sectionName}: карточки не найдены за 30 секунд.`);
-        await ctx.reply(`⚠️ ${sectionName}: карточки не найдены. Пропускаю...`);
-        await browser.close();
-        return;
-    }
+        const found = await Promise.race([
+            page.waitForSelector(selector, { timeout: 30000 }).then(() => true),
+            new Promise(resolve => setTimeout(() => resolve(false), 31000))
+        ]);
 
-    console.log('✅ Карточки найдены, продолжаю...');
-} catch (err) {
-    console.error('❌ Не удалось найти карточки товаров Shopify:', err.message);
-    await ctx.reply('⚠️ Shopify: не удалось найти карточки товаров. Пропускаю...');
-    await browser.close();
-    return;
-}
+        if (!found) {
+            console.warn(`❌ ${sectionName}: карточки не найдены за 30 секунд.`);
+            await ctx.reply(`⚠️ ${sectionName}: карточки не найдены. Пропускаю...`);
+            await browser.close();
+            return;
+        }
 
-console.log(`✅ Карточки ${sectionName} найдены, продолжаю...`);
+        console.log('✅ Карточки найдены, продолжаю...');
 
-    console.log('✅ Карточки найдены, продолжаю...');
-} catch (err) {
-    console.error('❌ Не удалось найти карточки товаров Shopify:', err.message);
-    await ctx.reply('⚠️ Shopify: не удалось найти карточки товаров. Пропускаю...');
-    await browser.close();
-    return;
-}
-
-
-    console.log('✅ Карточки найдены, продолжаю...');
-} catch (err) {
-    console.error('❌ Не удалось найти карточки товаров Shopify:', err.message);
-    await ctx.reply('⚠️ Shopify: не удалось найти карточки товаров. Пропускаю...');
-    return;
-}
-
-console.log('✅ Карточки найдены, продолжаю...');
         const links = await page.$$eval('a[href*="/quickview"]', els =>
             els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
         );
@@ -159,13 +144,13 @@ console.log('✅ Карточки найдены, продолжаю...');
 }
 
 bot.start((ctx) => {
-  console.log('🧾 chat.id =', ctx.chat.id); // лог chat.id в Render
-  return ctx.reply('Бот готов к работе!');
+    console.log('🧾 chat.id =', ctx.chat.id);
+    return ctx.reply('Бот готов к работе!');
 });
 
 bot.command('autorun', async (ctx) => {
     console.log('⏰ Запуск Shopify + TikTok по /autorun');
-console.log('📬 Команда /autorun дошла от chat.id =', ctx.chat.id);
+    console.log('📬 Команда /autorun дошла от chat.id =', ctx.chat.id);
 
     try {
         await ctx.reply('Запускаю Shopify...');
@@ -180,17 +165,12 @@ console.log('📬 Команда /autorun дошла от chat.id =', ctx.chat.i
             price: 'product price',
             profit: 'revenue',
             date: 'published on'
-             date: 'published on'
-        };
- (async () => {
-  try {
-    // ваш код
-  } catch (err) {
-    console.error('Ошибка:', err);
-  }
-})();
-
-
+        });
+    } catch (err) {
+        console.error('❌ Ошибка при выполнении /autorun:', err);
+        await ctx.reply('❌ Произошла ошибка при выполнении /autorun.');
+    }
+});
 
 bot.action('getshopify', (ctx) => {
     console.log('🔵 Кнопка Shopify нажата, запускаем парсинг...');
@@ -210,8 +190,7 @@ bot.action('gettiktok', (ctx) => {
     });
 });
 
-
 bot.launch();
 console.log('✅ Бот запущен! Жду команду.');
-// 👇 Обманка для Render, чтобы сервис не падал
 require('http').createServer(() => {}).listen(process.env.PORT || 3000);
+
