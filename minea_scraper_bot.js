@@ -1,11 +1,13 @@
+require('dotenv').config(); // подключает .env при локальной работе
+
 const puppeteer = require('puppeteer');
 const { Telegraf } = require('telegraf');
 const express = require('express');
 
-const bot = new Telegraf('8114664828:AAF2rP7DlgsisFptD3TDDB3Ng2E7L8-lGg8');
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-const MINEA_EMAIL = 'johnfink2012@gmail.com';
-const MINEA_PASSWORD = 'Croatia1#Fink';
+const MINEA_EMAIL = process.env.MINEA_EMAIL;
+const MINEA_PASSWORD = process.env.MINEA_PASSWORD;
 const LOGIN_URL = 'https://app.minea.com/en/login';
 const SHOPIFY_URL = 'https://app.minea.com/en/products/ecom?sort_by=-shopify__published_at';
 const TIKTOK_URL = 'https://app.minea.com/en/products/tiktok?sort_by=-inserted_at';
