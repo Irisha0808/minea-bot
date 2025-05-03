@@ -9,11 +9,13 @@ const app = express();
 
 app.use(express.json());
 app.use(bot.webhookCallback('/bot'));
-
-bot.telegram.setWebhook(`${process.env.RENDER_EXTERNAL_URL}/bot`).then(() => {
-  console.log('✅ Webhook установлен');
+bot.launch({
+  webhook: {
+    domain: process.env.RENDER_EXTERNAL_URL,
+    hookPath: '/bot'
+  }
 });
-
+console.log('✅ Webhook установлен');
 app.get('/', (_, res) => {
   res.send('🤖 Бот работает');
 });
