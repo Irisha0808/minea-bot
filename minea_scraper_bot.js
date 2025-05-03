@@ -36,7 +36,12 @@ async function processMineaSection(ctx, sectionName, url, labels) {
  let browser;
 
   try {
-    browser = await puppeteer.launch({...});
+    browser = await puppeteer.launch({
+  headless: true,
+  executablePath: '/usr/bin/google-chrome',
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
+
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
