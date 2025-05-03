@@ -40,17 +40,29 @@ async function acceptCookies(page) {
 }
 
 async function loginToMinea(page) {
-  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
-  await acceptCookies(page);
+  console.log('🔵 Жду появления кнопки Accept...');
+
+  const acceptBtnSelector = 'button:has-text("Accept")';
+  for (let i = 0; i < 10; i++) {
+    const acceptBtn = await page.$(acceptBtnSelector);
+    if (acceptBtn) {
+      await acceptBtn.click();
+      console.log('✅ Кнопка Accept нажата!');
+      break;
+    }
+    console.log('⏳ Кнопка Accept ещё не найдена, жду...');
+    await page.waitForTimeout(3000);
+  }
 
   console.log('🔐 Авторизация...');
-  await page.type('input[name="email"]', MINEA_EMAIL);
-  await page.type('input[name="password"]', MINEA_PASSWORD);
+  await page.type('input[type="email"]', process.env.MINEA_EMAIL, { delay: 100 });
+  await page.type('input[type="password"]', process.env.MINEA_PASSWORD, { delay: 100 });
+  await Promise.all([
+    page.click('button[type="submit"]'),
+    page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 })
+  ]);
 
-  await page.click('button[type="submit"]');
-  await page.waitForSelector('header', { timeout: 30000 });
-
-  console.log('✅ Вход выполнен, продолжаем...');
+  console.log('✅ Вход выполнен!');
 }
 
 
