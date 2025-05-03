@@ -1,6 +1,6 @@
 // minea_scraper_bot.js
 require('dotenv').config();
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const express = require('express');
 const { Telegraf } = require('telegraf');
 
@@ -29,10 +29,10 @@ bot.command('autorun', async (ctx) => {
   await ctx.reply('⏳ Запускаю бота... Ожидайте, идёт вход в Minea');
 
   const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  headless: true,
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+});
+
 
   const page = await browser.newPage();
 
@@ -94,6 +94,7 @@ bot.command('autorun', async (ctx) => {
   }
 });
 
-bot.launch();
+bot.launch({ webhook: { domain: process.env.RENDER_EXTERNAL_URL, hookPath: '/bot' } });
+
 
 
