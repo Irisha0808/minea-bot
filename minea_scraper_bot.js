@@ -48,10 +48,11 @@ async function loginToMinea(page) {
   await page.type('input[name="password"]', MINEA_PASSWORD);
 
   await page.click('button[type="submit"]');
-  await page.waitForSelector('a[href*="/products"]', { timeout: 30000 });
+  await page.waitForSelector('div.flex.items-center.justify-between', { timeout: 30000 });
 
   console.log('✅ Вход выполнен, продолжаем...');
 }
+
 
 async function processMineaSection(ctx, sectionName, url, labels, browser) {
   console.log(`🟡 Обработка секции: ${sectionName}`);
@@ -130,6 +131,7 @@ bot.start((ctx) => ctx.reply('Бот готов к работе!'));
 
 bot.command('autorun', async (ctx) => {
   console.log('▶️ Запуск по /autorun');
+  await ctx.reply('⏳ Запускаю бота... Ожидайте, идёт вход в Minea');
 
   const browser = await puppeteer.launch({
     headless: true,
