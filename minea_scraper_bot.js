@@ -30,19 +30,25 @@ bot.command('autorun', async (ctx) => {
 
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: '/usr/bin/google-chrome',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();
 
   try {
-    console.log('🔵 Жду появления кнопки Accept...');
     await page.goto('https://app.minea.com/en/login', { waitUntil: 'networkidle2' });
-    const acceptButton = await page.$('button:has-text("Accept")');
-    if (acceptButton) {
-      await acceptButton.click();
-      console.log('✅ Кнопка Accept нажата!');
+    console.log('🔵 Жду появления кнопки Accept...');
+
+    for (let i = 0; i < 10; i++) {
+      const acceptBtn = await page.$x("//button[contains(., 'Accept')]");
+      if (acceptBtn.length > 0) {
+        await acceptBtn[0].click();
+        console.log('✅ Кнопка Accept нажата!');
+        break;
+      }
+      console.log('⏳ Кнопка Accept ещё не найдена, жду...');
+      await page.waitForTimeout(1000);
     }
 
     console.log('🔐 Авторизация...');
@@ -50,48 +56,44 @@ bot.command('autorun', async (ctx) => {
     await page.type('input[name="password"]', process.env.MINEA_PASSWORD, { delay: 50 });
     await page.click('button[type="submit"]');
     await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-
-    console.log('✅ Успешный вход в Minea!');
     await ctx.reply('🔓 Успешный вход в Minea! Продолжаю работу...');
 
-    // Обработка Shopify секции
-    await ctx.reply('🟡 Обработка секции: Shopify');
-    await page.goto('https://app.minea.com/en/ecom/products/shopify', { waitUntil: 'networkidle2' });
-    await page.waitForSelector('a[href*="/quickview"]', { timeout: 30000 });
-    const shopifyLinks = await page.$$eval('a[href*="/quickview"]', els => els.map(el => el.href));
+    const sections = [
+      { name: 'Shopify', url: 'https://app.minea.com/en/ecom/products/shopify' },
+      { name: 'TikTok', url: 'https://app.minea.com/en/ecom/products/tiktok' }
+    ];
 
-    for (let i = 0; i < Math.min(5, shopifyLinks.length); i++) {
-      await page.goto(shopifyLinks[i], { waitUntil: 'networkidle2' });
-      await page.waitForSelector('img', { timeout: 10000 });
+    for (const section of sections) {
+      await ctx.reply(`🟡 Обработка секции: ${section.name}`);
+      console.log(`🔵 Переход к секции ${section.name}`);
 
-      const imageUrl = await page.$eval('img', el => el.src);
-      await ctx.replyWithPhoto(imageUrl, { caption: `🛍️ Shopify Товар ${i + 1}: ${shopifyLinks[i]}` });
+      try {
+        await page.goto(section.url, { waitUntil: 'networkidle2' });
+        await page.waitForSelector('a[href*="/quickview"]', { timeout: 30000 });
+        const links = await page.$$eval('a[href*="/quickview"]', els => els.map(el => el.href));
+
+        for (let i = 0; i < Math.min(5, links.length); i++) {
+          await page.goto(links[i], { waitUntil: 'networkidle2' });
+          await page.waitForSelector('img', { timeout: 10000 });
+          const imageUrl = await page.$eval('img', el => el.src);
+          await ctx.replyWithPhoto(imageUrl, { caption: `🛒 ${section.name} товар ${i + 1}: ${links[i]}` });
+        }
+      } catch (error) {
+        console.error(`❌ Ошибка при обработке ${section.name}:`, error.message);
+        await ctx.reply(`❌ Ошибка при обработке секции ${section.name}`);
+      }
     }
 
-    // Обработка TikTok секции
-    await ctx.reply('🟣 Обработка секции: TikTok');
-    await page.goto('https://app.minea.com/en/ecom/products/tiktok', { waitUntil: 'networkidle2' });
-    await page.waitForSelector('a[href*="/quickview"]', { timeout: 30000 });
-    const tiktokLinks = await page.$$eval('a[href*="/quickview"]', els => els.map(el => el.href));
-
-    for (let i = 0; i < Math.min(5, tiktokLinks.length); i++) {
-      await page.goto(tiktokLinks[i], { waitUntil: 'networkidle2' });
-      await page.waitForSelector('img', { timeout: 10000 });
-
-      const imageUrl = await page.$eval('img', el => el.src);
-      await ctx.replyWithPhoto(imageUrl, { caption: `📱 TikTok Товар ${i + 1}: ${tiktokLinks[i]}` });
-    }
-
+    await ctx.reply('✅ Все секции обработаны. Работа завершена.');
     console.log('✅ Все секции обработаны');
-    await ctx.reply('✅ Обработка завершена успешно');
-
   } catch (err) {
     console.error('❌ Ошибка при работе бота:', err.message);
-    await ctx.reply('❌ Ошибка: ' + err.message);
+    await ctx.reply('❌ Произошла ошибка при запуске. Проверьте лог на Render.');
   } finally {
     await browser.close();
   }
 });
 
 bot.launch();
+
 
