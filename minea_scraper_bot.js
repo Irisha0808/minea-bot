@@ -11,34 +11,53 @@ const LOGIN_URL = 'https://app.minea.com/en/login';
 const SHOPIFY_URL = 'https://app.minea.com/en/products/ecom?sort_by=-shopify__published_at';
 const TIKTOK_URL = 'https://app.minea.com/en/products/tiktok?sort_by=-inserted_at';
 
-async function processMineaSection(ctx, sectionName, url, labels) {
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function acceptCookies(page) {
+  console.log('🔵 Жду появления кнопки Accept...');
+  try {
+    for (let i = 0; i < 10; i++) {
+      const accepted = await page.evaluate(() => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const acceptBtn = buttons.find(btn => btn.textContent.includes('Accept'));
+        if (acceptBtn) {
+          acceptBtn.click();
+          return true;
+        }
+        return false;
+      });
+      if (accepted) {
+        console.log('✅ Кнопка Accept нажата!');
+        return;
+      }
+      console.log('⏳ Кнопка Accept ещё не найдена, жду...');
+      await wait(2000);
+    }
+    console.log('⚠️ Кнопка Accept так и не найдена, продолжаем.');
+  } catch (e) {
+    console.log('⚠️ Ошибка при поиске Accept кнопки:', e.message);
+  }
+}
+
+async function loginToMinea(page) {
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
+  await acceptCookies(page);
+  console.log('🔐 Авторизация...');
+  await page.type('input[name="email"]', MINEA_EMAIL);
+  await page.type('input[name="password"]', MINEA_PASSWORD);
+  await Promise.all([
+    page.click('button[type="submit"]'),
+    page.waitForNavigation({ waitUntil: 'networkidle0' })
+  ]);
+  console.log('✅ Вход выполнен, продолжаем...');
+}
+
+async function processMineaSection(ctx, sectionName, url, labels, browser) {
   console.log(`🟡 Обработка секции: ${sectionName}`);
   await ctx.reply(`⏳ Загружаю ${sectionName}...`);
 
-  let browser;
-
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
     const page = await browser.newPage();
-
-    // 🔐 Вход в Minea
-    await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
-    await page.type('input[name="email"]', MINEA_EMAIL);
-    await page.type('input[name="password"]', MINEA_PASSWORD);
-
-    await Promise.all([
-      page.click('button[type="submit"]'),
-      page.waitForNavigation({ waitUntil: 'networkidle0' })
-    ]);
-
-    console.log('✅ Вход выполнен, продолжаем...');
-
-    // 🔄 Переход к разделу (Shopify/TikTok)
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     const selector = 'a[href*="/quickview"]';
@@ -55,7 +74,7 @@ async function processMineaSection(ctx, sectionName, url, labels) {
       try {
         await productPage.goto(link, { waitUntil: 'domcontentloaded' });
         await productPage.evaluate(() => window.scrollBy(0, 500));
-        await new Promise(res => setTimeout(res, 3000));
+        await wait(3000);
 
         const productData = await productPage.evaluate((labels) => {
           const getTextByLabel = (label) => {
@@ -94,7 +113,7 @@ async function processMineaSection(ctx, sectionName, url, labels) {
         console.error(`⚠️ Ошибка в товаре #${i + 1}:`, err.message);
       } finally {
         await productPage.close();
-        await new Promise(res => setTimeout(res, 1500));
+        await wait(1500);
       }
     }
 
@@ -103,8 +122,6 @@ async function processMineaSection(ctx, sectionName, url, labels) {
   } catch (err) {
     console.error(`❌ Ошибка при обработке ${sectionName}:`, err.message);
     await ctx.reply(`❌ Ошибка в ${sectionName}: ${err.message}`);
-  } finally {
-    if (browser) await browser.close();
   }
 }
 
@@ -112,14 +129,38 @@ bot.start((ctx) => ctx.reply('Бот готов к работе!'));
 
 bot.command('autorun', async (ctx) => {
   console.log('▶️ Запуск по /autorun');
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  const page = await browser.newPage();
+  await loginToMinea(page);
+  await page.close();
+
   await processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
     price: 'Selling price',
     profit: 'Profit',
     date: 'Published on'
-  });
+  }, browser);
+
+  await processMineaSection(ctx, 'TikTok', TIKTOK_URL, {
+    price: 'product price',
+    profit: 'revenue',
+    date: 'published on'
+  }, browser);
+
+  await browser.close();
 });
 
 const app = express();
+app.use((req, res, next) => {
+  console.log(`🔹 Входящий запрос: ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(bot.webhookCallback('/bot'));
 
 const PORT = process.env.PORT || 3000;
