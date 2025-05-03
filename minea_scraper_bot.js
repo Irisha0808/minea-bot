@@ -48,10 +48,11 @@ async function loginToMinea(page) {
   await page.type('input[name="password"]', MINEA_PASSWORD);
 
   await page.click('button[type="submit"]');
-  await page.waitForSelector('div.flex.items-center.justify-between', { timeout: 30000 });
+  await page.waitForSelector('header', { timeout: 30000 });
 
   console.log('✅ Вход выполнен, продолжаем...');
 }
+
 
 
 async function processMineaSection(ctx, sectionName, url, labels, browser) {
