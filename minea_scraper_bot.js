@@ -32,8 +32,8 @@ async function acceptCookies(page) {
     }
 }
 
-async function processMineaSection(...) {
-  let browser;
+async function processMineaSection(ctx, sectionName, url, labels) {
+ let browser;
 
   try {
     browser = await puppeteer.launch({...});
