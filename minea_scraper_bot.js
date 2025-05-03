@@ -9,13 +9,16 @@ const app = express();
 
 app.use(express.json());
 app.use(bot.webhookCallback('/bot'));
+
 bot.launch({
   webhook: {
     domain: process.env.RENDER_EXTERNAL_URL,
     hookPath: '/bot'
   }
+}).then(() => {
+  console.log('✅ Webhook установлен');
 });
-console.log('✅ Webhook установлен');
+
 app.get('/', (_, res) => {
   res.send('🤖 Бот работает');
 });
@@ -31,10 +34,9 @@ bot.command('autorun', async (ctx) => {
   await ctx.reply('⏳ Запускаю бота... Ожидайте, идёт вход в Minea');
 
   const browser = await puppeteer.launch({
-  headless: true,
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
-
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 
   const page = await browser.newPage();
 
@@ -95,8 +97,5 @@ bot.command('autorun', async (ctx) => {
     await browser.close();
   }
 });
-
-bot.launch({ webhook: { domain: process.env.RENDER_EXTERNAL_URL, hookPath: '/bot' } });
-
 
 
