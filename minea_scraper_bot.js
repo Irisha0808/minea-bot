@@ -42,13 +42,14 @@ async function acceptCookies(page) {
 async function loginToMinea(page) {
   await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
   await acceptCookies(page);
+
   console.log('🔐 Авторизация...');
   await page.type('input[name="email"]', MINEA_EMAIL);
   await page.type('input[name="password"]', MINEA_PASSWORD);
-  await Promise.all([
-    page.click('button[type="submit"]'),
-    page.waitForNavigation({ waitUntil: 'networkidle0' })
-  ]);
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector('a[href*="/products"]', { timeout: 30000 });
+
   console.log('✅ Вход выполнен, продолжаем...');
 }
 
