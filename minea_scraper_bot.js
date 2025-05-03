@@ -25,10 +25,24 @@ async function processMineaSection(ctx, sectionName, url, labels) {
     });
 
     const page = await browser.newPage();
+
+    // 🔐 Вход в Minea
+    await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
+    await page.type('input[name="email"]', MINEA_EMAIL);
+    await page.type('input[name="password"]', MINEA_PASSWORD);
+
+    await Promise.all([
+      page.click('button[type="submit"]'),
+      page.waitForNavigation({ waitUntil: 'networkidle0' })
+    ]);
+
+    console.log('✅ Вход выполнен, продолжаем...');
+
+    // 🔄 Переход к разделу (Shopify/TikTok)
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     const selector = 'a[href*="/quickview"]';
-    await page.waitForSelector(selector);
+    await page.waitForSelector(selector, { timeout: 30000 });
 
     const links = await page.$$eval(selector, els =>
       els.slice(0, 8).map(link => link.href.replace('/quickview', '/details'))
