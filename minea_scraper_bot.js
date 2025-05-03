@@ -1,3 +1,16 @@
+require('dotenv').config();
+const puppeteer = require('puppeteer-core');
+const { Telegraf } = require('telegraf');
+const express = require('express');
+
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+
+const MINEA_EMAIL = process.env.MINEA_EMAIL;
+const MINEA_PASSWORD = process.env.MINEA_PASSWORD;
+const LOGIN_URL = 'https://app.minea.com/en/login';
+const SHOPIFY_URL = 'https://app.minea.com/en/products/ecom?sort_by=-shopify__published_at';
+const TIKTOK_URL = 'https://app.minea.com/en/products/tiktok?sort_by=-inserted_at';
+
 async function processMineaSection(ctx, sectionName, url, labels) {
   console.log(`🟡 Обработка секции: ${sectionName}`);
   await ctx.reply(`⏳ Загружаю ${sectionName}...`);
@@ -80,3 +93,27 @@ async function processMineaSection(ctx, sectionName, url, labels) {
     if (browser) await browser.close();
   }
 }
+
+bot.start((ctx) => ctx.reply('Бот готов к работе!'));
+
+bot.command('autorun', async (ctx) => {
+  console.log('▶️ Запуск по /autorun');
+  await processMineaSection(ctx, 'Shopify', SHOPIFY_URL, {
+    price: 'Selling price',
+    profit: 'Profit',
+    date: 'Published on'
+  });
+});
+
+const app = express();
+app.use(bot.webhookCallback('/bot'));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('✅ Бот запущен! Жду команду.');
+  console.log(`🚀 Webhook server listening on port ${PORT}`);
+});
+
+bot.telegram.setWebhook('https://minea-bot-docker.onrender.com/bot')
+  .then(() => console.log('✅ Webhook установлен'))
+  .catch((err) => console.error('❌ Ошибка при установке webhook:', err));
